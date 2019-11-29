@@ -13,12 +13,15 @@ import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ModelBakeEvent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.IModel;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class ClientProxy {
 
@@ -57,22 +60,20 @@ public class ClientProxy {
 		}
 	}
 
-	protected static void replaceModel(ModelBakeEvent event, ModelResourceLocation location, BiFunction<IBakedModel, IModel, IBakedModel> modelMaker) {
-		IModel model = ModelLoaderRegistry.getModelOrLogError(location, "Error loading model for " + location);
-		IBakedModel standard = event.getModelRegistry().get(location);
-		IBakedModel finalModel = modelMaker.apply(standard, model);
-		event.getModelRegistry().put(location, finalModel);
+	protected static void replaceModel(ModelBakeEvent event, ModelResourceLocation location, Function<IBakedModel, IBakedModel> modelMaker) {
+		IBakedModel original = event.getModelRegistry().get(location);
+		event.getModelRegistry().put(location, modelMaker.apply(original));
 	}
 
-	protected static void replaceTexturedModel(ModelBakeEvent event, ModelResourceLocation location, String key, boolean item) {
+	protected static void replaceTexturedModel(ModelBakeEvent event, ModelResourceLocation location, boolean item) {
 		replaceModel(
 				event, location,
-				(orig, model) -> new TextureModel(orig, model, item ? DefaultVertexFormats.ITEM : DefaultVertexFormats.BLOCK, key, item)
+				(orig) -> new TextureModel(orig, item)
 		);
 	}
 
-	protected static void replaceBothTexturedModels(ModelBakeEvent event, ResourceLocation loc, String key) {
-		replaceTexturedModel(event, new ModelResourceLocation(loc, ""), key, false);
-		replaceTexturedModel(event, new ModelResourceLocation(loc, "inventory"), "texture", true);
+	protected static void replaceBothTexturedModels(ModelBakeEvent event, ResourceLocation loc) {
+		replaceTexturedModel(event, new ModelResourceLocation(loc, ""), false);
+		replaceTexturedModel(event, new ModelResourceLocation(loc, "inventory"), true);
 	}
 }

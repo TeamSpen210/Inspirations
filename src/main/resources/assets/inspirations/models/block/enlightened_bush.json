@@ -1,7 +1,6 @@
 {   "parent": "minecraft:block/block",
     "textures": {
-        "leaves": "inspirations:retexture",
-        "particle": "minecraft:oak_leaves"
+        "particle": "#leaves"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],
